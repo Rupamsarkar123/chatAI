@@ -4,12 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "NODE_OPTIONS='--max-old-space-size=1024' vite build",
+    "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "lint": "eslint .",
+  "preview": "vite preview --port $PORT"
+}
 
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "start": "vite preview --port $PORT"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
