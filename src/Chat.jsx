@@ -20,9 +20,10 @@ const Chat = () => {
       const userMessage = { sender: "user", text: message };
       setChatHistory([...chatHistory, userMessage]);
 
-      const response = await axios.post("http://localhost:5001/chat", {
-        message,
-      });
+      const response = await axios.post("https://chatai-5snk.onrender.com/chat", {
+  message,
+});
+
       const botReply = { sender: "bot", text: response.data.reply };
       setChatHistory([...chatHistory, userMessage, botReply]);
     } catch (error) {
