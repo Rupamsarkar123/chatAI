@@ -8,7 +8,14 @@ dotenv.config(); // Load environment variables
 const app = express();
 const port = 5001; // You can change this
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["https://chatai-1-2enq.onrender.com"], // Allow your frontend
+    methods: ["GET", "POST"], // Allow necessary HTTP methods
+    credentials: true, // Allow cookies (if needed)
+  })
+);
+
 app.use(express.json());
 
 const openai = new OpenAI({
