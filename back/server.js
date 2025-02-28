@@ -6,7 +6,8 @@ import { OpenAI } from "openai";
 dotenv.config(); // Load environment variables
 
 const app = express();
-const port = 5001; // You can change this
+const port = process.env.PORT || 5001;
+ // You can change this
 
 app.use(
   cors({
