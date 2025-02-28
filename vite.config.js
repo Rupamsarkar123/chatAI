@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc"; // Use SWC instead of Babel
+import react from "@vitejs/plugin-react"; // Default React plugin
 
 export default defineConfig({
   plugins: [react()],
