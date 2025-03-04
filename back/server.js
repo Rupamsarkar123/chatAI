@@ -1,44 +1,57 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { OpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai"; // Import Gemini API
 
-dotenv.config(); // Load environment variables
-
+dotenv.config();
 const app = express();
-const port = process.env.PORT || 5001;
- // You can change this
+const port = 5001;
 
-app.use(
-  cors({
-    origin: ["https://chatai-1-2enq.onrender.com"], // Allow your frontend
-    methods: ["GET", "POST"], // Allow necessary HTTP methods
-    credentials: true, // Allow cookies (if needed)
-  })
-);
-
+app.use(cors());
 app.use(express.json());
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+// Gemini setup with proper API version
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const modelInstance = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+app.get("/", (req, res) => {
+  res.send("Welcome to the Pitchwave Chat API!");
 });
 
-// API Endpoint to handle chat requests
 app.post("/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, model } = req.body;
+    console.log("Incoming Request:", req.body); // Debug incoming data
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: message }],
-    });
+    if (!message) {
+      return res.status(400).json({ error: "Message parameter is required." });
+    }
 
-    res.json({ reply: response.choices[0].message.content });
+    let reply = "No response from AI.";
+
+    if (model === "gemini") {
+      console.log("GenAI initialized successfully.");
+
+      try {
+        const chat = await modelInstance.startChat({ history: [] });
+        const response = await chat.sendMessage(message);
+
+        console.log("Gemini Response:", response); // Debug Gemini API response
+        reply = response.response.text() || reply;
+      } catch (geminiError) {
+        console.error("Gemini API Error:", geminiError);
+        return res.status(500).json({ error: "Gemini API request failed." });
+      }
+    }
+
+    console.log("Final Reply:", reply);
+    res.json({ reply });
   } catch (error) {
-    res.status(500).json({ error: "Something went wrong" });
+    console.error("API Error:", error);
+    res.status(500).json({ error: "Something went wrong." });
   }
 });
 
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port} :)`);
+  console.log(`✅ Server running on http://localhost:${port}`);
 });
