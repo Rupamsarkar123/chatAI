@@ -1,16 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Button, Input } from "antd"; // Import Ant Design components
-import { SendOutlined } from "@ant-design/icons"; // Import Send icon
-import "antd/dist/reset.css"; // Import Ant Design CSS
+import { Button, Input } from "antd";
+import { SendOutlined } from "@ant-design/icons";
+import "antd/dist/reset.css";
 import userAvatar from "./assets/user.jpg";
 import botAvatar from "./assets/chatbott.png";
-import chatIcon from "./assets/chatbott.svg"; // Imposrt SVG icon
+import chatIcon from "./assets/chatbott.svg";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  // Auto-scroll to the latest message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatHistory]);
 
   const handleSend = async () => {
     if (!message.trim()) return;
@@ -18,17 +24,25 @@ const Chat = () => {
 
     try {
       const userMessage = { sender: "user", text: message };
-      setChatHistory([...chatHistory, userMessage]);
+      setChatHistory((prev) => [...prev, userMessage]);
 
-      const response = await axios.post("https://chatai-5snk.onrender.com/chat", {
-  message,
-});
+      const response = await axios.post("http://localhost:5001/chat", {
+        message,
+        model: "gemini", // Ensure model is passed
+      });
 
-      const botReply = { sender: "bot", text: response.data.reply };
-      setChatHistory([...chatHistory, userMessage, botReply]);
+      console.log("API Response:", response.data); // Debug response
+
+      if (response.data && response.data.reply) {
+        const botReply = { sender: "bot", text: response.data.reply };
+        setChatHistory((prev) => [...prev, botReply]);
+      } else {
+        console.error("No reply received from API.");
+      }
     } catch (error) {
-      setChatHistory([
-        ...chatHistory,
+      console.error("Error fetching response:", error);
+      setChatHistory((prev) => [
+        ...prev,
         { sender: "bot", text: "Error fetching response." },
       ]);
     }
@@ -39,7 +53,7 @@ const Chat = () => {
 
   return (
     <div style={styles.container}>
-      {/* Navbar Header */}
+      {/* Navbar */}
       <div style={styles.navbar}>
         <span style={styles.logo}>Pitchwave</span>
       </div>
@@ -82,23 +96,24 @@ const Chat = () => {
             </div>
           ))}
           {loading && <p style={styles.loading}>Thinking...</p>}
+          <div ref={chatEndRef} />
         </div>
 
+        {/* Input Field */}
         <div style={styles.inputContainer}>
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
             style={styles.input}
-            onPressEnter={handleSend} // Allows Enter key to send message
+            onPressEnter={handleSend}
           />
-          {/* Ant Design Button with Icon */}
           <Button
             type="primary"
             icon={<SendOutlined />}
             onClick={handleSend}
             style={styles.button}
-            disabled={!message.trim()} // Disable when input is empty
+            disabled={!message.trim()}
           >
             Send
           </Button>
@@ -118,7 +133,7 @@ const styles = {
     flexDirection: "column",
     alignItems: "center",
     minHeight: "100vh",
-    backgroundColor: "#FFFFFF", // Dark background
+    backgroundColor: "#FFFFFF",
     padding: "20px",
   },
 
@@ -164,8 +179,8 @@ const styles = {
     borderRadius: "10px",
     padding: "20px",
     color: "#000",
-    marginTop: "80px", // Pushes chat below navbar
-    marginBottom: "60px", // Avoids overlap with footer
+    marginTop: "80px",
+    marginBottom: "60px",
   },
 
   chatTitle: {
@@ -180,9 +195,9 @@ const styles = {
   },
 
   chatIcon: {
-    width: "20px", // Smaller size
+    width: "20px",
     height: "20px",
-    marginRight: "6px", // Less spacing
+    marginRight: "6px",
   },
 
   chatText: {
@@ -237,8 +252,8 @@ const styles = {
   },
 
   button: {
-    width: "120px", // Set button width
-    height: "50px", // Match input height
+    width: "120px",
+    height: "50px",
     fontSize: "16px",
     marginLeft: "10px",
     display: "flex",
