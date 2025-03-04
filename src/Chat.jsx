@@ -26,7 +26,7 @@ const Chat = () => {
       const userMessage = { sender: "user", text: message };
       setChatHistory((prev) => [...prev, userMessage]);
 
-      const response = await axios.post("http://localhost:5001/chat", {
+      const response = await axios.post("https://chatai-5t89.onrender.com/chat", {
         message,
         model: "gemini", // Ensure model is passed
       });
